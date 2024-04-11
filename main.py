@@ -30,7 +30,6 @@ parser.add_argument('--termination-reg', type=float, default=0.01, help=('Regula
 parser.add_argument('--entropy-reg', type=float, default=0.01, help=('Regularization to increase policy entropy.'))
 parser.add_argument('--num-options', type=int, default=2, help=('Number of options to create.'))
 parser.add_argument('--temp', type=float, default=1, help='Action distribution softmax tempurature param.')
-
 parser.add_argument('--max_steps_ep', type=int, default=18000, help='number of maximum steps per episode.')
 parser.add_argument('--max_steps_total', type=int, default=int(4e6), help='number of maximum steps to take.') # bout 4 million
 parser.add_argument('--cuda', type=bool, default=True, help='Enable CUDA training (recommended if possible).')
@@ -62,7 +61,7 @@ def run(args):
 
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
-    env.seed(args.seed)
+    env.reset(seed=args.seed)
 
     buffer = ReplayBuffer(capacity=args.max_history, seed=args.seed)
     logger = Logger(logdir=args.logdir, run_name=f"{OptionCriticFeatures.__name__}-{args.env}-{args.exp}-{time.ctime()}")
@@ -73,7 +72,7 @@ def run(args):
 
         rewards = 0 ; option_lengths = {opt:[] for opt in range(args.num_options)}
 
-        obs   = env.reset()
+        obs, info   = env.reset()
         state = option_critic.get_state(to_tensor(obs))
         greedy_option  = option_critic.greedy_option(state)
         current_option = 0
@@ -105,7 +104,7 @@ def run(args):
     
             action, logp, entropy = option_critic.get_action(state, current_option)
 
-            next_obs, reward, done, _ = env.step(action)
+            next_obs, reward, done, _, _ = env.step(action)
             buffer.push(obs, current_option, reward, next_obs, done)
             rewards += reward
 

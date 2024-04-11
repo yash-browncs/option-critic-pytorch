@@ -68,7 +68,7 @@ wwwwwwwwwwwww
                 avail.append(nextcell)
         return avail
 
-    def reset(self):
+    def reset(self, seed=0):
         state = self.rng.choice(self.init_states)
         self.currentcell = self.tocell[state]
         self.ep_steps = 0
