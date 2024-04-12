@@ -28,7 +28,7 @@ class Logger():
 
     def log_episode(self, steps, reward, option_lengths, ep_steps, epsilon):
         self.n_eps += 1
-        logging.info(f"> ep {self.n_eps} done. total_steps={steps} | reward={reward} | episode_steps={ep_steps} "\
+        print(f"> ep {self.n_eps} done. total_steps={steps} | reward={reward} | episode_steps={ep_steps} "\
             f"| hours={(time.time()-self.start_time) / 60 / 60:.3f} | epsilon={epsilon:.3f}")
         self.writer.add_scalar(tag="episodic_rewards", scalar_value=reward, global_step=self.n_eps)
         self.writer.add_scalar(tag='episode_lengths', scalar_value=ep_steps, global_step=self.n_eps)

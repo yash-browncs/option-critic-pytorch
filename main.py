@@ -35,7 +35,7 @@ parser.add_argument('--max_steps_total', type=int, default=int(4e6), help='numbe
 parser.add_argument('--cuda', type=bool, default=True, help='Enable CUDA training (recommended if possible).')
 parser.add_argument('--seed', type=int, default=0, help='Random seed for numpy, torch, random.')
 parser.add_argument('--logdir', type=str, default='runs', help='Directory for logging statistics')
-parser.add_argument('--exp', type=str, default=None, help='optional experiment name')
+parser.add_argument('--exp', type=str, default="test", help='optional experiment name')
 parser.add_argument('--switch-goal', type=bool, default=False, help='switch goal after 2k eps')
 
 def run(args):
@@ -54,6 +54,7 @@ def run(args):
         eps_test=args.optimal_eps,
         device=device
     )
+
     # Create a prime network for more stable Q values
     option_critic_prime = deepcopy(option_critic)
 
@@ -64,7 +65,7 @@ def run(args):
     env.reset(seed=args.seed)
 
     buffer = ReplayBuffer(capacity=args.max_history, seed=args.seed)
-    logger = Logger(logdir=args.logdir, run_name=f"{OptionCriticFeatures.__name__}-{args.env}-{args.exp}-{time.ctime()}")
+    logger = Logger(logdir=args.logdir, run_name=f"{OptionCriticFeatures.__name__}-{args.env}-{args.exp}-{args.seed}-{int(time.time())}")
 
     steps = 0 ;
     if args.switch_goal: print(f"Current goal {env.goal}")
@@ -94,7 +95,7 @@ def run(args):
             break
 
         done = False ; truncated = False ; ep_steps = 0 ; option_termination = True ; curr_op_len = 0
-        while not done and not truncated and ep_steps < args.max_steps_ep:
+        while ((not done) and (not truncated)) and ep_steps < args.max_steps_ep:
             epsilon = option_critic.epsilon
 
             if option_termination:
@@ -104,7 +105,8 @@ def run(args):
     
             action, logp, entropy = option_critic.get_action(state, current_option)
 
-            next_obs, reward, done, truncated, _ = env.step(action)
+            next_obs, reward, done, truncated, info = env.step(action)
+
             buffer.push(obs, current_option, reward, next_obs, done)
             rewards += reward
 
