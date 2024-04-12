@@ -93,8 +93,8 @@ def run(args):
                         f'models/option_critic_seed={args.seed}_2k')
             break
 
-        done = False ; ep_steps = 0 ; option_termination = True ; curr_op_len = 0
-        while not done and ep_steps < args.max_steps_ep:
+        done = False ; truncated = False ; ep_steps = 0 ; option_termination = True ; curr_op_len = 0
+        while not done and not truncated and ep_steps < args.max_steps_ep:
             epsilon = option_critic.epsilon
 
             if option_termination:
@@ -104,7 +104,7 @@ def run(args):
     
             action, logp, entropy = option_critic.get_action(state, current_option)
 
-            next_obs, reward, done, _, _ = env.step(action)
+            next_obs, reward, done, truncated, _ = env.step(action)
             buffer.push(obs, current_option, reward, next_obs, done)
             rewards += reward
 
